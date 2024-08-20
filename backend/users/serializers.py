@@ -1,4 +1,5 @@
 from djoser.serializers import UserCreateSerializer, UserSerializer
+from djoser import serializers as ser
 from rest_framework import serializers
 # from .views import CustomUserViewSet
 
@@ -16,9 +17,12 @@ class CreateUserSerializer(UserCreateSerializer):
 class UsersSerializer(UserSerializer):
 # class UsersSerializer(serializers.ModelSerializer):
 
-    queryset = User.objects.all()
-
     class Meta:
 
         model = User
         fields = ('email', 'id', 'username', 'first_name', 'last_name',)
+
+class MeUserSerializer(UserSerializer):
+    class Meta:
+        model = User
+        fields = ('email', 'id', 'username', )
