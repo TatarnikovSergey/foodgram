@@ -3,6 +3,7 @@ from django.db import models
 
 
 class User(AbstractUser):
+    """Модель пользователя."""
     email = models.EmailField(max_length=256, unique=True,
                               verbose_name='Адрес электронной почты')
     username = models.CharField(max_length=150, unique=True,
@@ -26,3 +27,19 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
+
+
+class Follow(models.Model):
+    """Модель подписки на автора рецепта."""
+
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='follower')
+    following = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='following')
+
+    class Meta:
+        constraints = (
+            models.UniqueConstraint(
+                fields=('user', 'following'),
+                name='unique_follow'
+            ),)
