@@ -1,26 +1,33 @@
 import base64
 import os
-
+from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from djoser.serializers import UserSerializer
 from djoser.views import UserViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from .paginations import Pagination
-from .models import User, Follow
-from .serializers import UsersSerializer, UserAvatarSerializer
-    # FollowSerializer
+from .models import Follow
+from .serializers import UsersSerializer, UserAvatarSerializer, \
+    FollowSerializer
+# FollowSerializer
 from rest_framework import permissions, mixins, viewsets, filters
 
 
+User = get_user_model()
+
 class CustomUserViewSet(UserViewSet):
 
-    serializer_class = UsersSerializer
+    # serializer_class = UsersSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
     pagination_class = Pagination
 
+    # def get_permissions(self):
+    #     if self.action in ['retrieve', 'list']:
+    #         return (permissions.IsAuthenticatedOrReadOnly(),)
+    #     return super().get_permissions()
     def get_queryset(self):
         # pass
         return User.objects.all()
@@ -62,19 +69,70 @@ class CustomUserViewSet(UserViewSet):
         else:
             return Response({"errors": "У вас нет аватара"}, status=400)
 
-class FollowViewSet(mixins.CreateModelMixin,
-                    mixins.ListModelMixin, viewsets.GenericViewSet):
-    """Viewset модели Follow."""
+    @action(detail=False,
+            methods=['get'],
+            permission_classes=[IsAuthenticated])
+    def me(self, request):
+        """Получаем профиль пользователя."""
+        user = self.request.user
+        serializer = UsersSerializer(user, context={'request': request})
+        return Response(serializer.data)
 
-    # serializer_class = FollowSerializer
-    permission_classes = (permissions.IsAuthenticated,)
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('following__username',)
+    @action(detail=True,
+            methods=['post', 'delete'],
+            url_path='subscribe',
+            permission_classes=[IsAuthenticated])
+    def is_subscribed(self, request, **kwargs):
+        """Подписка и отписка на/от автора."""
+        user = request.user
+        following = get_object_or_404(User, pk=kwargs.get('id'))
+        if request.method == 'POST':
+            if user == following:
+                return Response({"errors": "Нельзя подписаться на самого себя"},
+                                status=400)
+            if Follow.objects.filter(user=user, following=following):
+                return Response({"errors": "Вы уже подписаны на этого автора"},
+                                    status=400)
+            serializer = FollowSerializer(following, data=request.data,
+                                          context={'request': request})
+            serializer.is_valid(raise_exception=True)
+            Follow.objects.create(user=user, following=following)
+            return Response(serializer.data, status=201)
+        subscride = Follow.objects.filter(user=user,following=following)
+        if subscride.exists():
+            subscride.delete()
+            return Response(status=204)
+        return Response({"errors": "Ошибка отписки"}, status=400)
 
-    def get_queryset(self):
+    @action(detail=False,
+            methods=['get'],
+            url_path='subscriptions',
+            pagination_class=Pagination,
+            permission_classes=[IsAuthenticated])
+    def subscriptions(self, request):
         """Получаем подписки пользователя."""
-        return Follow.objects.filter(user=self.request.user)
+        user = request.user
+        followings = Follow.objects.filter(user=user)
+        pages = self.paginate_queryset(followings)
+        serializer = FollowSerializer(pages, many=True,
+                                      context={'request': request})
+        return self.get_paginated_response(serializer.data)
 
-    def perform_create(self, serializer):
-        """Подписчика получаем от пользователя."""
-        serializer.save(user=self.request.user)
+
+
+# class FollowViewSet(mixins.CreateModelMixin,
+#                     mixins.ListModelMixin, viewsets.GenericViewSet):
+#     """Viewset модели Follow."""
+#
+#     serializer_class = FollowSerializer
+#     permission_classes = (permissions.IsAuthenticated,)
+#     filter_backends = (filters.SearchFilter,)
+#     search_fields = ('following__username',)
+#
+#     def get_queryset(self):
+#         """Получаем подписки пользователя."""
+#         return Follow.objects.filter(user=self.request.user)
+#
+#     def perform_create(self, serializer):
+#         """Подписчика получаем от пользователя."""
+#         serializer.save(user=self.request.user)

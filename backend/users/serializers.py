@@ -49,8 +49,13 @@ class UsersSerializer(serializers.ModelSerializer):
     def get_is_subscribed(self, obj):
 
         user = self.context.get('request').user
-        followers = Follow.objects.filter(following=obj)
-        return followers.filter(user=user).exists()
+        # followers = Follow.objects.filter(following=obj)
+        # return followers.filter(user=user).exists()
+        if user.is_anonymous:
+            return False
+        return Follow.objects.filter(user=user, following=obj.id).exists()
+
+
 
 
 class UserAvatarSerializer(UsersSerializer):
@@ -58,30 +63,60 @@ class UserAvatarSerializer(UsersSerializer):
         model = User
         fields = ('avatar', )
 
+class FollowSerializer(serializers.ModelSerializer):
+# class FollowSerializer(UsersSerializer):
+    """Сериализатор данных модели подписки."""
 
-# class FollowSerializer(serializers.ModelSerializer):
-#     """Сериализатор данных модели подписки."""
-#
-#     user = serializers.SlugRelatedField(read_only=True, slug_field='username')
-#     following = serializers.SlugRelatedField(slug_field='username',
-#                                              queryset=User.objects.all())
-#
-#     class Meta:
-#         fields = ('user', 'following',)
-#         model = Follow
-#
-#     def validate(self, data):
-#         """Проверка данных перед подпиской."""
-#         user = self.context.get('request').user
-#         following = data.get('following')
-#         current_subscription = Follow.objects.filter(user=user,
-#                                                      following=following)
-#         if following == user:
-#             raise serializers.ValidationError(
-#                 'Нельзя подписаться на самого себя!'
-#             )
-#         if current_subscription:
-#             raise serializers.ValidationError(
-#                 'Вы уже подписались на этого автора!'
-#             )
-#         return data
+    # user = serializers.SlugRelatedField(read_only=True, slug_field='username')
+    # following = serializers.SlugRelatedField(slug_field='username',
+    #                                          queryset=User.objects.all())
+    email = serializers.EmailField(read_only=True, source='following.email')
+    id = serializers.PrimaryKeyRelatedField(read_only=True,
+                                            source='following.id')
+    username = serializers.CharField(read_only=True,
+                                     source='following.username')
+    first_name = serializers.CharField(read_only=True,
+                                       source='following.first_name')
+    last_name = serializers.CharField(read_only=True,
+                                      source='following.last_name')
+    is_subscribed = serializers.SerializerMethodField()
+    avatar = serializers.ImageField(read_only=True, source='following.avatar')
+    recipies = serializers.SerializerMethodField()
+    recipies_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Follow
+        fields = ('email', 'id', 'username', 'first_name',
+                  'last_name', 'is_subscribed', 'avatar', 'recipies',
+                  'recipies_count')
+
+    def get_is_subscribed(self, obj):
+        user = self.context.get('request').user
+        return Follow.objects.filter(
+            user=user, following=obj.following).exists()
+
+    def get_recipies(self, obj):
+        # return obj.following.recipe_set.all()3
+        pass
+        return
+
+
+    def get_recipies_count(self, obj):
+        # return obj.following.recipe_set.count()
+        pass
+        return
+    # def validate(self, data):
+    #     """Проверка данных перед подпиской."""
+    #     user = self.context.get('request').user
+    #     following = data.get('following')
+    #     current_subscription = Follow.objects.filter(user=user,
+    #                                                  following=following)
+    #     if following == user:
+    #         raise serializers.ValidationError(
+    #             'Нельзя подписаться на самого себя!'
+    #         )
+    #     if current_subscription:
+    #         raise serializers.ValidationError(
+    #             'Вы уже подписались на этого автора!'
+    #         )
+    #     return data
