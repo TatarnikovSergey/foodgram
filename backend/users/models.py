@@ -12,7 +12,7 @@ class User(AbstractUser):
     last_name = models.CharField(max_length=150, verbose_name='Фамилия')
     password = models.CharField(max_length=150)
     avatar = models.ImageField(
-        upload_to='media/users/',
+        upload_to='users/',
         null=True,
         default=None,
         verbose_name='Аватар'
