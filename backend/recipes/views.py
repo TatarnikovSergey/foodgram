@@ -4,9 +4,9 @@ from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, filters
 # from .filters import IngredientFilter
-from .models import Tags, Ingredients
+from .models import Tags, Ingredients, Recipies
 from .permissions import IsStaffOrReadOnly
-from .serializers import TagsSerializer, IngredientsSerializer
+from .serializers import TagsSerializer, IngredientsSerializer, RecipesSerializer
 
 User = get_user_model()
 
@@ -32,3 +32,12 @@ class IngredientsViewSet(viewsets.ModelViewSet):
         if name:
             return queryset.filter(name__istartswith=name.lower())
         return queryset
+
+
+class RecipiesViewSet(viewsets.ModelViewSet):
+    queryset = Recipies.objects.all()
+    serializer_class = RecipesSerializer
+
+    def perform_create(self, serializer):
+        """При создании рецепта автора получаем от пользователя."""
+        serializer.save(author=self.request.user)
