@@ -6,11 +6,11 @@ User = get_user_model()
 
 class Recipies(models.Model):
     """Модель рецептов."""
-    tags = models.ManyToManyField('Tags', verbose_name='Тег')
+    tags = models.ManyToManyField('Tags', related_name='recipes', verbose_name='Тег')
     author = models.ForeignKey(User, on_delete=models.CASCADE,
                                related_name="recipies",
                                verbose_name='Автор')
-    ingredients = models.ManyToManyField('Ingredients',
+    ingredients = models.ManyToManyField('Ingredients', related_name='recipes',
                                          verbose_name='Ингредиент')
     name = models.CharField(max_length=256, verbose_name='Название')
     image = models.ImageField(upload_to='recipes/images/',
@@ -81,3 +81,21 @@ class ShoppingCart(models.Model):
     class Meta:
         verbose_name = 'Список покупок'
         verbose_name_plural = 'Списки покупок'
+
+
+class IngredientsRecipies(models.Model):
+    """Модель связи рецепта и ингредиента."""
+    recipe = models.ForeignKey(Recipies, on_delete=models.CASCADE,
+                               verbose_name='Рецепт')
+    ingredient = models.ForeignKey(Ingredients, models.CASCADE,
+                                    verbose_name='Ингредиент')
+    amount = models.PositiveIntegerField(verbose_name='Количество')
+
+    class Meta:
+        ordering = ['-id']
+        verbose_name = 'Количество ингридиента'
+        verbose_name_plural = 'Количество ингридиентов'
+        constraints = [
+            models.UniqueConstraint(fields=['ingredient', 'recipe'],
+                                    name='unique_ingredients_recipe')
+            ]
