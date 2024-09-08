@@ -8,7 +8,8 @@ from rest_framework.response import Response
 # from .filters import IngredientFilter
 from .models import Tags, Ingredients, Recipies
 from .permissions import IsStaffOrReadOnly
-from .serializers import TagsSerializer, IngredientsSerializer, RecipesSerializer# AddRecipesSerializer
+from .serializers import TagsSerializer, IngredientsSerializer, \
+    RecipiesSerializer#, RecipesReadSerializer  # AddRecipesSerializer
 
 User = get_user_model()
 
@@ -26,6 +27,7 @@ class IngredientsViewSet(viewsets.ModelViewSet):
     serializer_class = IngredientsSerializer
     permission_classes = (IsStaffOrReadOnly,)
     pagination_class = None
+    queryset = Ingredients.objects.all()
 
     def get_queryset(self):
         """Получает ингредиент в соответствии с параметрами запроса."""
@@ -37,9 +39,10 @@ class IngredientsViewSet(viewsets.ModelViewSet):
 
 
 class RecipiesViewSet(viewsets.ModelViewSet):
-    queryset = Recipies.objects.select_related("author").prefetch_related(
-        "tags", "ingredients")
-    serializer_class = RecipesSerializer
+    # queryset = Recipies.objects.select_related("author").prefetch_related(
+    #     "tags", "ingredients")
+    queryset = Recipies.objects.all()
+    serializer_class = RecipiesSerializer
 
     def perform_create(self, serializer):
         """При создании рецепта автора получаем от пользователя."""
@@ -47,21 +50,21 @@ class RecipiesViewSet(viewsets.ModelViewSet):
 
     # def get_serializer_class(self):
     #     if self.request.method in permissions.SAFE_METHODS:
-    #         return RecipesSerializer
-    #     return AddRecipesSerializer
+    #         return RecipesReadSerializer
+    #     return RecipesSerializer
 
-    def add_recipe(self, request, model, pk=None):
-        user = request.user
-        try:
-            recipe = Recipies.objects.get(
-                id=pk
-            )
-        except Recipies.DoesNotExist:
-            error_status = 400
-            return Response(
-                status=error_status,
-                data={'errors': 'Указанного рецепта не существует'}
-            )
+    # def add_recipe(self, request, model, pk=None):
+    #     user = request.user
+    #     try:
+    #         recipe = Recipies.objects.get(
+    #             id=pk
+    #         )
+    #     except Recipies.DoesNotExist:
+    #         error_status = 400
+    #         return Response(
+    #             status=error_status,
+    #             data={'errors': 'Указанного рецепта не существует'}
+    #         )
         # if model.objects.filter(
         #         recipe=recipe,
         #         user=user
