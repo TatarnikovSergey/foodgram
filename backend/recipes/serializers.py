@@ -134,7 +134,6 @@ class RecipiesSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         ingredients = validated_data.pop('ingredients')
-        # print(ingredients)
         tags = validated_data.pop('tags')
         recipe = Recipies.objects.create(**validated_data)
         recipe.tags.set(tags)
@@ -159,7 +158,6 @@ class RecipiesSerializer(serializers.ModelSerializer):
         if field == 'tags':
             tags_list = []
             for tag in data:
-                print(tag)
                 if tag in tags_list:
                     raise serializers.ValidationError({
                         f'{field}': 'Теги не должны повторяться в рецепте!'})
@@ -175,8 +173,6 @@ class RecipiesSerializer(serializers.ModelSerializer):
         data['ingredients'] = self.validate_field('ingredients')
         data['tags'] = self.validate_field('tags')
         return data
-
-
 
     def update(self, instance, validated_data):
         instance.name = validated_data.get('name', instance.name)

@@ -1,8 +1,10 @@
 from django.contrib.auth import get_user_model
 from django.db.models import Q
-
+from django.shortcuts import get_object_or_404
+import pyshorteners
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, filters, permissions
+from rest_framework.decorators import action
 from rest_framework.response import Response
 
 # from .filters import IngredientFilter
@@ -48,6 +50,18 @@ class RecipiesViewSet(viewsets.ModelViewSet):
         """При создании рецепта автора получаем от пользователя."""
         serializer.save(author=self.request.user)
 
+    @action(
+        detail=True,
+        methods=['get'],
+        url_path='get-link',
+    )
+    def get_link(self, request, pk):
+        get_object_or_404(Recipies, id=pk)
+        # long_url = request.build_absolute_uri(f'/api/recipes/{pk}/')
+        long_url = request.build_absolute_uri(self.get_extra_action_url_map())
+        short = pyshorteners.Shortener()
+        short_url = short.tinyurl.short(long_url)
+        return Response({'short-link': short_url})
     # def get_serializer_class(self):
     #     if self.request.method in permissions.SAFE_METHODS:
     #         return RecipesReadSerializer
