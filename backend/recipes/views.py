@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
-from django.db.models import Q
+from django.db.models import Q, Sum
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 import pyshorteners
 from django_filters.rest_framework import DjangoFilterBackend
@@ -8,7 +9,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 # from .filters import IngredientFilter
-from .models import Tags, Ingredients, Recipies, Favorites, ShoppingCart
+from .models import Tags, Ingredients, Recipies, Favorites, ShoppingCart, \
+    IngredientsRecipies
 from .permissions import IsStaffOrReadOnly
 from .serializers import TagsSerializer, IngredientsSerializer, \
     RecipiesSerializer, \
@@ -66,7 +68,7 @@ class RecipiesViewSet(viewsets.ModelViewSet):
         return Response({'short-link': short_url})
 
     def add_or_del_recipe(self, serializer_class, request, pk, model):
-        """Добавление и удаление рецепта в избранное и покупки"""
+        """Добавление и удаление рецепта"""
         user = request.user
         recipe = get_object_or_404(Recipies, pk=pk)
         data = {'user': user.id, 'recipe': recipe.id}
@@ -99,55 +101,36 @@ class RecipiesViewSet(viewsets.ModelViewSet):
         permission_classes=[permissions.IsAuthenticated],
     )
     def shopping_cart(self, request, pk):
-        """Добавление и удаление рецепта в список покупок."""
+        """Добавление и удаление рецепта в корзину."""
         return self.add_or_del_recipe(
             serializer_class=ShoppingCartSerializer,
             request=request,
             pk=pk,
             model=ShoppingCart)
 
+    @action(
+        detail=False,
+        methods=['get'],
+        permission_classes=[permissions.IsAuthenticated],
+    )
+    def download_sopping_cart(self, request):
+        """Скачивание рецептов из корзины."""
+        user = request.user
+        ingredients = IngredientsRecipies.objects.filter(
+            recipe__shopping_cart__user=user
+        ).values(
+            'ingredient__name', 'ingredient__measurement_unit'
+        ).annotate(total_amount=Sum('amount'))
+        if not ingredients:
+            return HttpResponse("Корзина пуста.")
+        content = "ИНГРЕДИЕНТЫ:\n"
+        for i in ingredients:
+            content += (f"{i['ingredient__name']} "
+                        f"({i['ingredient__measurement_unit']}) - "
+                        f"{i['total_amount']}\n")
+        response = HttpResponse(content, content_type='text/plain')
+        response['Content-Disposition'] = (
+            'attachment; filename="ingredients_list.txt"')
 
+        return response
 
-
-    # def get_serializer_class(self):
-    #     if self.request.method in permissions.SAFE_METHODS:
-    #         return RecipesReadSerializer
-    #     return RecipesSerializer
-
-    # def add_recipe(self, request, model, pk=None):
-    #     user = request.user
-    #     try:
-    #         recipe = Recipies.objects.get(
-    #             id=pk
-    #         )
-    #     except Recipies.DoesNotExist:
-    #         error_status = 400
-    #         return Response(
-    #             status=error_status,
-    #             data={'errors': 'Указанного рецепта не существует'}
-    #         )
-        # if model.objects.filter(
-        #         recipe=recipe,
-        #         user=user
-        # ).exists():
-        #     model_name = 'список покупок' if model == ShoppingCart \
-        #         else 'избранное'
-        #     return Response({'errors': f'Рецепт уже добавлен в {model_name}'},
-        #                     status=status.HTTP_400_BAD_REQUEST)
-        # obj = model.objects.create(
-        #     recipe=recipe,
-        #     user=user,
-        # )
-        # if model == ShoppingCart:
-        #     return Response(ShoppingCartSerializer(obj).data,
-        #                     status=status.HTTP_201_CREATED)
-        #
-        # return Response(
-        #     data={
-        #         'id': recipe.id,
-        #         'name': recipe.name,
-        #         'cooking_time': recipe.cooking_time,
-        #         'image': base64.b64encode(recipe.image.read()).decode('utf-8')
-        #     },
-        #     status=status.HTTP_201_CREATED
-        # )

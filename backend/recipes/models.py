@@ -91,7 +91,8 @@ class ShoppingCart(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE,
                              verbose_name='Пользователь')
     recipe = models.ForeignKey(Recipies,  on_delete=models.CASCADE,
-                               verbose_name='Рецепт')
+                               verbose_name='Рецепт',
+                               related_name='shopping_cart')
     constraints = [
         models.UniqueConstraint(fields=['user', 'recipe'],
                                 name="unique_user_shopping_cart")
