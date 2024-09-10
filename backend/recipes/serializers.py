@@ -170,6 +170,11 @@ class RecipiesSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {'image': 'У рецепта должна быть картинка'}
             )
+        cook_time = data.get('cooking_time')
+        if cook_time <= 0:
+            raise serializers.ValidationError(
+                {'cooking_time': 'Время приготовления не может быть < 1'}
+            )
         data['ingredients'] = self.validate_field('ingredients')
         data['tags'] = self.validate_field('tags')
         return data
