@@ -1,8 +1,10 @@
 import base64
 
+
 from django.core.files.base import ContentFile
 from django.db import transaction
-from rest_framework import  serializers
+from django.shortcuts import get_object_or_404
+from rest_framework import serializers, validators
 
 from .models import Ingredients, Recipies, Tags, IngredientsRecipies, \
     ShoppingCart, Favorites
@@ -44,47 +46,17 @@ class IngredientsRecipiesSerializer(serializers.ModelSerializer):
         source='ingredient.id'
     )
     # name = serializers.SlugRelatedField(
-    name = serializers.ReadOnlyField(
-        source='ingredient.name',
-        # read_only=True,
-        # slug_field='name'
-    )
+    name = serializers.ReadOnlyField(source='ingredient.name')
     # measurement_unit = serializers.SlugRelatedField(
     measurement_unit = serializers.ReadOnlyField(
-        source='ingredient.measurement_unit',
-        # read_only=True,
-        # slug_field='measurement_unit'
+        source='ingredient.measurement_unit'
     )
 
     class Meta:
         model = IngredientsRecipies
-        # fields = '__all__'
         fields = ('id', 'name', 'measurement_unit', 'amount')
 
 
-# class AddIngredientsRecipiesSerializer(serializers.ModelSerializer):
-#     """Сериализатор добавления ингредиентов в рецепт."""
-#     id = serializers.PrimaryKeyRelatedField(
-#         queryset=Ingredients.objects.all()
-#     )
-#     amount = serializers.IntegerField(
-#         min_value=1,
-#         max_value=1000,
-#         error_messages={
-#             'min_value': 'Кол-во ингредиента не может быть меньше '
-#                          f'{1}.',
-#             'max_value': 'Кол-во ингредиента не может быть больше '
-#                          f'{1000}.',
-#             'invalid': 'Укажите корректное кол-во ингредиента.',
-#         }
-#     )
-#
-#     class Meta:
-#         model = IngredientsRecipies
-#         fields = ('id', 'amount')
-#         # fields = '__all__'
-
-#
 class RecipiesSerializer(serializers.ModelSerializer):
     """Сериализатор рецептов."""
     tags = TagsSerializer(many=True, read_only=True)
@@ -105,9 +77,6 @@ class RecipiesSerializer(serializers.ModelSerializer):
                   'cooking_time')
 
 
-
-    # def get_id(self, obj):
-    #     return f'{obj.id}'
 
     def get_is_favorited(self, obj):
         request = self.context.get('request')
@@ -195,38 +164,52 @@ class RecipiesSerializer(serializers.ModelSerializer):
         return instance
 
 
-    # def validate_value(self, value):
-    #     ingredients = self.initial_data.get('ingredients')
-    #     if not ingredients:
-    #         raise serializers.ValidationError(
-    #             {'ingredients': 'Для рецепта нужен хотя бы один ингредиент'}
-    #         )
-    #     tags = value
-    #     if not tags:
-    #         raise serializers.ValidationError(
-    #             {'tags': 'Для рецепта нужен хотя бы один тег'}
-    #         )
-    #     return value
+class FavoriteShoppingShowSerializer(serializers.ModelSerializer):
+    """Сериализатор избранного и покупок."""
+
+    image = Base64ImageField()
+
+    class Meta:
+        model = Recipies
+        fields = ('id', 'name', 'image', 'cooking_time')
 
 
+class FavoritesSerializer(serializers.ModelSerializer):
+    """Сериализатор добавления в избранное."""
 
-        # data = self.initial_data.get(fields)
-        # image = data['image']
-        # ingredients = data['ingredients']
-        # print(image)
-        # if not image:
-        #     raise serializers.ValidationError(
-        #         {'image': 'У рецепта должна быть картинка'}
-        #     )
-        # ingredient_ids = [ingredient['id'] for ingredient in ingredients]
-        # if len(ingredient_ids) != len(set(ingredient_ids)):
-        #     raise serializers.ValidationError({
-        #         'ingredients': 'Ингредиенты должны быть уникальными.'
-        #     })
-        #
-        # if len(tags) != len(set(tags)):
-        #     raise serializers.ValidationError({
-        #         'tags': 'Теги должны быть уникальными.'
-        #     })
-        #
-        # return data
+    class Meta:
+        model = Favorites
+        fields = ('user', 'recipe')
+        validators = [
+            validators.UniqueTogetherValidator(
+                queryset=Favorites.objects.all(),
+                fields=['user', 'recipe'],
+                )
+        ]
+
+    def to_representation(self, instance):
+        request = self.context.get('request')
+        return FavoriteShoppingShowSerializer(
+            instance.recipe,
+            context={'request': request}
+        ).data
+
+
+class ShoppingCartSerializer(serializers.ModelSerializer):
+    """Сериализатор добавления в корзину."""
+    class Meta:
+        model = ShoppingCart
+        fields = ('user', 'recipe')
+        validators = [
+            validators.UniqueTogetherValidator(
+                queryset=ShoppingCart.objects.all(),
+                fields=['user', 'recipe'],
+            )
+        ]
+
+    def to_representation(self, instance):
+        request = self.context.get('request')
+        return FavoriteShoppingShowSerializer(
+            instance.recipe,
+            context={'request': request}
+        ).data

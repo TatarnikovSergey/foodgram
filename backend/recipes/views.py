@@ -3,15 +3,17 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404
 import pyshorteners
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, filters, permissions
+from rest_framework import viewsets, filters, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 # from .filters import IngredientFilter
-from .models import Tags, Ingredients, Recipies
+from .models import Tags, Ingredients, Recipies, Favorites, ShoppingCart
 from .permissions import IsStaffOrReadOnly
 from .serializers import TagsSerializer, IngredientsSerializer, \
-    RecipiesSerializer#, RecipesReadSerializer  # AddRecipesSerializer
+    RecipiesSerializer, \
+    FavoritesSerializer, \
+    ShoppingCartSerializer  # , RecipesReadSerializer  # AddRecipesSerializer
 
 User = get_user_model()
 
@@ -56,12 +58,57 @@ class RecipiesViewSet(viewsets.ModelViewSet):
         url_path='get-link',
     )
     def get_link(self, request, pk):
+        """Генерация короткой ссылки."""
         get_object_or_404(Recipies, id=pk)
-        # long_url = request.build_absolute_uri(f'/api/recipes/{pk}/')
         long_url = request.build_absolute_uri(self.get_extra_action_url_map())
         short = pyshorteners.Shortener()
         short_url = short.tinyurl.short(long_url)
         return Response({'short-link': short_url})
+
+    def add_or_del_recipe(self, serializer_class, request, pk, model):
+        """Добавление и удаление рецепта в избранное и покупки"""
+        user = request.user
+        recipe = get_object_or_404(Recipies, pk=pk)
+        data = {'user': user.id, 'recipe': recipe.id}
+        serializer = serializer_class(data=data,
+                                      context={'request': request})
+        if request.method == 'POST':
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        elif request.method == 'DELETE':
+            get_object_or_404(model, user=user, recipe=recipe).delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(
+        detail=True,
+        methods=['post', 'delete'],
+        permission_classes=[permissions.IsAuthenticated],
+    )
+    def favorite(self, request, pk):
+        """Добавление и удаление рецепта в избранное."""
+        return self.add_or_del_recipe(
+            serializer_class=FavoritesSerializer,
+            request=request,
+            pk=pk,
+            model=Favorites)
+
+    @action(
+        detail=True,
+        methods=['post', 'delete'],
+        permission_classes=[permissions.IsAuthenticated],
+    )
+    def shopping_cart(self, request, pk):
+        """Добавление и удаление рецепта в список покупок."""
+        return self.add_or_del_recipe(
+            serializer_class=ShoppingCartSerializer,
+            request=request,
+            pk=pk,
+            model=ShoppingCart)
+
+
+
+
     # def get_serializer_class(self):
     #     if self.request.method in permissions.SAFE_METHODS:
     #         return RecipesReadSerializer
