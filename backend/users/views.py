@@ -13,16 +13,16 @@ from .models import Follow
 from .serializers import UsersSerializer, UserAvatarSerializer, \
     FollowSerializer
 # FollowSerializer
-from rest_framework import permissions, mixins, viewsets, filters
-
+from rest_framework import permissions, mixins, viewsets, filters, status
 
 User = get_user_model()
 
 class CustomUserViewSet(UserViewSet):
 
     # serializer_class = UsersSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     pagination_class = Pagination
+    # queryset = User.objects.all()
 
     # def get_permissions(self):
     #     if self.action in ['retrieve', 'list']:
@@ -32,14 +32,11 @@ class CustomUserViewSet(UserViewSet):
         # pass
         return User.objects.all()
 
-
     @action(
         detail=False,
-        methods=['put'],
+        methods=['put', 'patch'],
         url_path='me/avatar',
         permission_classes=[permissions.IsAuthenticated],
-
-
     )
     def add_avatar(self, request):
         user = request.user
@@ -48,15 +45,14 @@ class CustomUserViewSet(UserViewSet):
             temp_data = request.data.get('avatar').split(",")[1]
             deroder = base64.b64decode(temp_data)
             avatar = ContentFile(deroder,
-                                      name=f'avatar{user.id}.png')
-            user.avatar.save(f'avatar{user.id}.png', avatar)
+                                      name=f'avatar{user.username}.png')
+            user.avatar.save(f'avatar{user.username}.png', avatar)
             user.save()
             return Response(
                 UserAvatarSerializer(user, context={'request': request}).data
             )
-        else:
-            return Response({"errors": "Аватар не предоставлен"},
-                            status=400)
+        return Response({"errors": "Аватар не предоставлен"},
+                        status=status.HTTP_400_BAD_REQUEST)
 
     @add_avatar.mapping.delete
     def del_avatar(self, request):
@@ -65,13 +61,14 @@ class CustomUserViewSet(UserViewSet):
             os.remove(user.avatar.path)
             user.avatar = None
             user.save()
-            return Response(status=204)
+            return Response(status=status.HTTP_204_NO_CONTENT)
         else:
-            return Response({"errors": "У вас нет аватара"}, status=400)
+            return Response({"errors": "У вас нет аватара"},
+                            status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False,
             methods=['get'],
-            permission_classes=[IsAuthenticated])
+            permission_classes=[permissions.IsAuthenticated])
     def me(self, request):
         """Получаем профиль пользователя."""
         user = self.request.user
@@ -80,25 +77,26 @@ class CustomUserViewSet(UserViewSet):
 
     @action(detail=True,
             methods=['post', 'delete'],
-            url_path='subscribe',
+            # url_path='subscribe',
             permission_classes=[IsAuthenticated])
-    def is_subscribed(self, request, **kwargs):
+    def subscribe(self, request, id=None):
         """Подписка и отписка на/от автора."""
         user = request.user
-        following = get_object_or_404(User, pk=kwargs.get('id'))
+        following = get_object_or_404(User, id=id)
         if request.method == 'POST':
             if user == following:
                 return Response({"errors": "Нельзя подписаться на самого себя"},
-                                status=400)
+                                status=status.HTTP_400_BAD_REQUEST)
             if Follow.objects.filter(user=user, following=following):
                 return Response({"errors": "Вы уже подписаны на этого автора"},
-                                    status=400)
-            serializer = FollowSerializer(following, data=request.data,
-                                          context={'request': request})
-            serializer.is_valid(raise_exception=True)
-            Follow.objects.create(user=user, following=following)
+                                status=status.HTTP_400_BAD_REQUEST)
+            # serializer = FollowSerializer(following, data=request.data,
+            #                               context={'request': request})
+            # serializer.is_valid(raise_exception=True)
+            follow = Follow.objects.create(user=user, following=following)
+            serializer = FollowSerializer(follow, context={'request': request})
             return Response(serializer.data, status=201)
-        subscride = Follow.objects.filter(user=user,following=following)
+        subscride = Follow.objects.filter(user=user, following=following)
         if subscride.exists():
             subscride.delete()
             return Response(status=204)
