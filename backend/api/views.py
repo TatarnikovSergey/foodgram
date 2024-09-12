@@ -17,7 +17,7 @@ import pyshorteners
 
 from  .filters import RecipiesFilter
 from .paginations import Pagination
-from .permissions import IsStaffOrReadOnly
+from .permissions import IsStaffOrReadOnly, IsAuthorOrModerPermission
 from .serializers import (FavoritesSerializer, FollowSerializer,
                           IngredientsSerializer, RecipiesSerializer,
                           ShoppingCartSerializer, TagsSerializer,#)
@@ -181,6 +181,7 @@ class RecipiesViewSet(viewsets.ModelViewSet):
     pagination_class = pagination.LimitOffsetPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipiesFilter
+    permission_classes = (IsAuthorOrModerPermission,)
     # filter_fields = ('author__id', 'tags__name')
 
 

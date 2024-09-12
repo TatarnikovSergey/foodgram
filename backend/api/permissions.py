@@ -23,6 +23,18 @@ class IsStaffOrReadOnly(permissions.BasePermission):
             raise MethodNotAllowed(request.method)
         return True
 
+class IsAuthorOrModerPermission(permissions.BasePermission):
+    """
+    Разрешает доступ авторам объектов или модераторам.
+    Позволяет безопасные методы всем пользователям.
+    """
+
+    def has_object_permission(self, request, view, obj):
+        return (
+            request.method in permissions.SAFE_METHODS
+            or obj.author == request.user
+            or (request.user.is_authenticated and request.user.is_staff)
+        )
 
 
 
