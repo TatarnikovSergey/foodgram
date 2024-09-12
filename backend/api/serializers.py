@@ -90,14 +90,14 @@ class FollowSerializer(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField()
     # avatar = serializers.ImageField(read_only=True, source='following.avatar')
     avatar = serializers.SerializerMethodField()
-    recipies = serializers.SerializerMethodField()
-    recipies_count = serializers.SerializerMethodField()
+    recipes = serializers.SerializerMethodField()
+    recipes_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Follow
         fields = ('email', 'id', 'username', 'first_name',
-                  'last_name', 'is_subscribed', 'recipies',
-                  'recipies_count', 'avatar')
+                  'last_name', 'is_subscribed', 'recipes',
+                  'recipes_count', 'avatar')
 
     def get_is_subscribed(self, obj):
         # user = self.context.get('request').user
@@ -106,7 +106,7 @@ class FollowSerializer(serializers.ModelSerializer):
         # pass
 #
 
-    def get_recipies(self, obj):
+    def get_recipes(self, obj):
         request = self.context.get('request')
         limit = request.GET.get('recipes_limit')
         queryset = Recipies.objects.filter(author=obj.following)
@@ -118,9 +118,9 @@ class FollowSerializer(serializers.ModelSerializer):
 # #         return
 # #
 #
-    def get_recipies_count(self, obj):
-        # return obj.following.recipe_set.count()
-        pass
+    def get_recipes_count(self, obj):
+        return Recipies.objects.filter(author=obj.following).count()
+
 
     def get_avatar(self, obj):
 #         if obj.following.avatar:
