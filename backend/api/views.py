@@ -181,7 +181,8 @@ class RecipiesViewSet(viewsets.ModelViewSet):
     pagination_class = pagination.LimitOffsetPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipiesFilter
-    permission_classes = (IsAuthorOrModerPermission,)
+    permission_classes = (IsAuthorOrModerPermission,
+                          permissions.IsAuthenticatedOrReadOnly)
     # filter_fields = ('author__id', 'tags__name')
 
 

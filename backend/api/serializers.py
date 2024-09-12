@@ -96,8 +96,8 @@ class FollowSerializer(serializers.ModelSerializer):
     class Meta:
         model = Follow
         fields = ('email', 'id', 'username', 'first_name',
-                  'last_name', 'is_subscribed', 'avatar', 'recipies',
-                  'recipies_count')
+                  'last_name', 'is_subscribed', 'recipies',
+                  'recipies_count', 'avatar')
 
     def get_is_subscribed(self, obj):
         # user = self.context.get('request').user
@@ -106,13 +106,13 @@ class FollowSerializer(serializers.ModelSerializer):
         # pass
 #
 
-    # def get_recipies(self, obj):
-    #     request = self.context.get('request')
-    #     limit = request.GET.get('recipes_limit')
-    #     queryset = Recipies.objects.filter(author=obj.following)
-    #     if limit:
-    #         queryset = queryset[:int(limit)]
-    #     return FavoriteShoppingShowSerializer(queryset, many=True).data
+    def get_recipies(self, obj):
+        request = self.context.get('request')
+        limit = request.GET.get('recipes_limit')
+        queryset = Recipies.objects.filter(author=obj.following)
+        if limit:
+            queryset = queryset[:int(limit)]
+        return FavoriteShoppingShowSerializer(queryset, many=True).data
 #         return Follow.objects.filter(
 #             user=obj.user, following=obj.following).exists()
 # #         return
