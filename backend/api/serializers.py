@@ -246,19 +246,20 @@ class RecipiesSerializer(serializers.ModelSerializer):
                         f'{field}': 'Такого тега не существует!'})
         return data
 
-    def validate_ingredients(self, value):
-        for ingredient_id in value:
-            if not Ingredients.objects.filter(id=ingredient_id).exists():
-                raise serializers.ValidationError("Ингредиент не найден")
-        return value
+    # def validate_ingredients(self, value):
+    #     for ingredient_id in value:
+    #         if not Ingredients.objects.filter(id=ingredient_id).exists():
+    #             raise serializers.ValidationError("Ингредиент не найден")
+    #     return value
     def validate(self, data):
         image = self.initial_data.get('image')
+        # cooking_time = self.initial_data.get('cooking_time')
         if not image:
             raise serializers.ValidationError(
                 {'image': 'У рецепта должна быть картинка'}
             )
         cook_time = data.get('cooking_time')
-        if cook_time <= 0:
+        if not cook_time or cook_time <= 0:
             raise serializers.ValidationError(
                 {'cooking_time': 'Время приготовления не может быть < 1'}
             )
