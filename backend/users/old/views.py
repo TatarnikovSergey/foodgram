@@ -2,18 +2,17 @@ import base64
 import os
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
-from django.shortcuts import render, get_object_or_404
-from djoser.serializers import UserSerializer
+from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
-from .paginations import Pagination
-from .models import Follow
-from .serializers import UsersSerializer, UserAvatarSerializer, \
+from rest_framework.permissions import IsAuthenticated
+from backend.users.old.paginations import Pagination
+from backend.users.models import Follow
+from backend.users.old.serializers import UsersSerializer, UserAvatarSerializer, \
     FollowSerializer
 # FollowSerializer
-from rest_framework import permissions, mixins, viewsets, filters, status
+from rest_framework import permissions, status
 
 User = get_user_model()
 

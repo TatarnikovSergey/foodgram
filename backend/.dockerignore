@@ -1,6 +1,6 @@
 venv
 .gitkeep
-db.sqlite3
+recipes/tempo/db.sqlite3
 .idea
 .vscode
 ../.env

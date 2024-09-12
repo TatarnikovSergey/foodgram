@@ -1,23 +1,22 @@
-from django.contrib.auth import get_user_model
-from django.db.models import Q, Sum
-from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
+# from django.contrib.auth import get_user_model
+# from django.db.models import Sum
+# from django.http import HttpResponse
+# from django.shortcuts import get_object_or_404
 import pyshorteners
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, filters, permissions, status
-from rest_framework.decorators import action
-from rest_framework.response import Response
+# from rest_framework import viewsets, permissions, status
+# from rest_framework.decorators import action
+# from rest_framework.response import Response
 
 # from .filters import IngredientFilter
-from .models import Tags, Ingredients, Recipies, Favorites, ShoppingCart, \
-    IngredientsRecipies
-from .permissions import IsStaffOrReadOnly
-from .serializers import TagsSerializer, IngredientsSerializer, \
-    RecipiesSerializer, \
-    FavoritesSerializer, \
-    ShoppingCartSerializer  # , RecipesReadSerializer  # AddRecipesSerializer
+# from .models import Tags, Ingredients, Recipies, Favorites, ShoppingCart, \
+#     IngredientsRecipies
+# from backend.recipes.tempo.permissions import IsStaffOrReadOnly
+# from backend.recipes.tempo.serializers import TagsSerializer, IngredientsSerializer, \
+#     RecipiesSerializer, \
+#     FavoritesSerializer, \
+#     ShoppingCartSerializer  # , RecipesReadSerializer  # AddRecipesSerializer
 
-User = get_user_model()
+# User = get_user_model()
 
 
 class TagsViewSet(viewsets.ModelViewSet):

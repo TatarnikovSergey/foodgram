@@ -6,7 +6,7 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers, validators
 
-from .models import Ingredients, Recipies, Tags, IngredientsRecipies, \
+from backend.recipes.models import Ingredients, Recipies, Tags, IngredientsRecipies, \
     ShoppingCart, Favorites
 from users.serializers import UsersSerializer
 
