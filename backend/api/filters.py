@@ -37,7 +37,7 @@ class RecipiesFilter(FilterSet):
     def is_in_shopping_cart_filter(self, queryset, name, value):
         """Фильтрация для рецептов в списке покупок."""
         if value and self.request.user.is_authenticated:
-            return queryset.filter(shoppingcarts__user=self.request.user)
+            return queryset.filter(shopping_cart__user=self.request.user)
         return queryset
 
     def is_favorited_filter(self, queryset, name, value):
