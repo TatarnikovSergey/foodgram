@@ -253,7 +253,7 @@ class RecipiesViewSet(viewsets.ModelViewSet):
         methods=['get'],
         permission_classes=[permissions.IsAuthenticated],
     )
-    def download_sopping_cart(self, request):
+    def download_shopping_cart(self, request):
         """Скачивание рецептов из корзины."""
         user = request.user
         ingredients = IngredientsRecipies.objects.filter(
