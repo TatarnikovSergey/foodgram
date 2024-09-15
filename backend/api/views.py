@@ -55,8 +55,7 @@ class CustomUserViewSet(UserViewSet):
         if request.data.get('avatar'):
             temp_data = request.data.get('avatar').split(",")[1]
             deroder = base64.b64decode(temp_data)
-            avatar = ContentFile(deroder,
-                                      name=f'avatar{user.username}.png')
+            avatar = ContentFile(deroder, name=f'avatar{user.username}.png')
             user.avatar.save(f'avatar{user.username}.png', avatar)
             user.save()
             return Response(
@@ -95,7 +94,7 @@ class CustomUserViewSet(UserViewSet):
         following = get_object_or_404(User, id=id)
         if request.method == 'POST':
             if user == following:
-                return Response({"errors": "Нельзя подписаться на самого себя"},
+                return Response({"errors": "Нельзя подписаться на себя"},
                                 status=status.HTTP_400_BAD_REQUEST)
             if Follow.objects.filter(user=user, following=following):
                 return Response({"errors": "Вы уже подписаны на этого автора"},

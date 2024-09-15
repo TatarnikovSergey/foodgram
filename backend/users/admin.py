@@ -9,7 +9,6 @@ class FollowAdmin(admin.ModelAdmin):
     search_fields = ('user__username', 'following__username')
 
 
-
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
     list_display = (

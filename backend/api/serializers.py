@@ -250,7 +250,7 @@ class FavoritesSerializer(serializers.ModelSerializer):
                 queryset=Favorites.objects.all(),
                 fields=['user', 'recipe'],
                 )
-        ]
+            ]
 
     def to_representation(self, instance):
         request = self.context.get('request')
