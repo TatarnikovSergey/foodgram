@@ -140,3 +140,5 @@ dmypy.json
 
 static/
 media/
+/backend/users/old/
+/backend/recipes/tempo/
