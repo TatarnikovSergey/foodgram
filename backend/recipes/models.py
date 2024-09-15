@@ -2,6 +2,8 @@ from django.contrib.auth import get_user_model
 from django.core import validators
 from django.db import models
 
+from .constants import (MAX_LEN_MEAS_UNIT, MAX_LEN_NAME, MAX_LEN_NAME_TAG,
+                        MAX_LEN_SLUG)
 
 User = get_user_model()
 
@@ -9,16 +11,14 @@ User = get_user_model()
 class Recipies(models.Model):
     """Модель рецептов."""
     tags = models.ManyToManyField('Tags',
-                                  # related_name='recipes',
                                   verbose_name='Тег')
     author = models.ForeignKey(User, on_delete=models.CASCADE,
-                               # related_name="recipes",
                                verbose_name='Автор')
     ingredients = models.ManyToManyField('Ingredients',
-                                         # related_name='recipes',
                                          verbose_name='Ингредиент',
                                          through='IngredientsRecipies',)
-    name = models.CharField(max_length=256, verbose_name='Название')
+    name = models.CharField(max_length=MAX_LEN_NAME,
+                            verbose_name='Название')
     image = models.ImageField(upload_to='recipes/images/',
                               verbose_name='Картинка')
     text = models.TextField(verbose_name='Описание')
@@ -26,11 +26,10 @@ class Recipies(models.Model):
                                        verbose_name='Время приготовления')
     pub_date = models.DateTimeField(auto_now_add=True,
                                     verbose_name='Дата публикации')
-    # is_favorite = models.ManyToManyField(
-    #         User,
-    #         through='Favorites',
-    #         related_name='favorited_recipes',
-    #         verbose_name='В избранном',
+    is_favorite = models.ManyToManyField(User,
+                                         through='Favorites',
+                                         related_name='favorites_recipies',
+                                         verbose_name='Избранный')
 
     class Meta:
         verbose_name = 'Рецепт'
@@ -43,14 +42,15 @@ class Recipies(models.Model):
 
 class Tags(models.Model):
     """Модель Тегов."""
-    name = models.CharField(max_length=30, unique=True,
+    name = models.CharField(max_length=MAX_LEN_NAME_TAG, unique=True,
                             verbose_name='Название')
-    slug = models.SlugField(max_length=30, unique=True,
+    slug = models.SlugField(max_length=MAX_LEN_SLUG, unique=True,
                             verbose_name='Slug')
 
     class Meta:
         verbose_name = 'Тег'
         verbose_name_plural = 'Теги'
+        ordering = ('name',)
 
     def __str__(self):
         return self.name
@@ -58,13 +58,14 @@ class Tags(models.Model):
 
 class Ingredients(models.Model):
     """Модель Ингредиентов."""
-    name = models.CharField(max_length=60, verbose_name='Название')
-    measurement_unit = models.CharField(max_length=60,
+    name = models.CharField(max_length=MAX_LEN_NAME, verbose_name='Название')
+    measurement_unit = models.CharField(max_length=MAX_LEN_MEAS_UNIT,
                                         verbose_name='Единица измерения')
 
     class Meta:
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
+        ordering = ('id',)
 
     def __str__(self):
         return self.name
@@ -75,6 +76,7 @@ class Favorites(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE,
                              verbose_name='Пользователь')
     recipe = models.ForeignKey(Recipies, on_delete=models.CASCADE,
+                               related_name='favorites',
                                verbose_name='Рецепт')
     constraints = [
         models.UniqueConstraint(fields=['user', 'recipe'],

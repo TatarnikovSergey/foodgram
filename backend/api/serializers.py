@@ -4,13 +4,10 @@ from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers, validators
-# from drf_extra_fields.fields import Base64ImageField
 
 from recipes.models import (Ingredients, IngredientsRecipies, Recipies, Tags,
                             ShoppingCart, Favorites)
-
-from users.models import Follow#, User
-# from users.serializers import UsersSerializer
+from users.models import Follow
 
 User = get_user_model()
 
@@ -18,18 +15,10 @@ User = get_user_model()
 class Base64ImageField(serializers.ImageField):
     """Сериализатор кодировки изображений."""
     def to_internal_value(self, data):
-        # Если полученный объект строка, и эта строка
-        # начинается с 'data:image'...
         if isinstance(data, str) and data.startswith('data:image'):
-            # ...начинаем декодировать изображение из base64.
-            # Сначала нужно разделить строку на части.
             format, imgstr = data.split(';base64,')
-            # И извлечь расширение файла.
             ext = format.split('/')[-1]
-            # Затем декодировать сами данные и поместить результат в файл,
-            # которому дать название по шаблону.
             data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
-
         return super().to_internal_value(data)
 
 
@@ -44,9 +33,7 @@ class CreateUserSerializer(UserCreateSerializer):
 
 
 class UsersSerializer(UserSerializer):
-# class UsersSerializer(serializers.ModelSerializer):
     avatar = Base64ImageField()
-    # avatar = Base64ImageField(required=False, allow_null=True)
     is_subscribed = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -55,15 +42,8 @@ class UsersSerializer(UserSerializer):
                   'last_name', 'is_subscribed', 'avatar',)
 
     def get_is_subscribed(self, obj):
-
         user = self.context.get('request').user
-        # followers = Follow.objects.filter(following=obj)
-        # return followers.filter(user=user).exists()
-        # if user.is_anonymous:
-        #     return False
         return Follow.objects.filter(user=user.id, following=obj.id).exists()
-
-
 
 
 class UserAvatarSerializer(UsersSerializer):
@@ -72,15 +52,8 @@ class UserAvatarSerializer(UsersSerializer):
         fields = ('avatar', )
 
 
-# class FollowSerializer(serializers.ModelSerializer):
-#     """Сериализатор подписки на автора."""
-#     class Meta:
-#         model = Follow
-
-
 
 class FollowSerializer(serializers.ModelSerializer):
-# # class FollowSerializer(UsersSerializer):
     """Сериализатор данных подписки."""
     email = serializers.ReadOnlyField(source='following.email')
     id = serializers.ReadOnlyField(source='following.id')
@@ -88,7 +61,6 @@ class FollowSerializer(serializers.ModelSerializer):
     first_name = serializers.ReadOnlyField(source='following.first_name')
     last_name = serializers.ReadOnlyField(source='following.last_name')
     is_subscribed = serializers.SerializerMethodField()
-    # avatar = serializers.ImageField(read_only=True, source='following.avatar')
     avatar = serializers.SerializerMethodField()
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
@@ -100,11 +72,8 @@ class FollowSerializer(serializers.ModelSerializer):
                   'recipes_count', 'avatar')
 
     def get_is_subscribed(self, obj):
-        # user = self.context.get('request').user
         return Follow.objects.filter(
             user=obj.user, following=obj.following).exists()
-        # pass
-#
 
     def get_recipes(self, obj):
         request = self.context.get('request')
@@ -113,20 +82,14 @@ class FollowSerializer(serializers.ModelSerializer):
         if limit:
             queryset = queryset[:int(limit)]
         return FavoriteShoppingShowSerializer(queryset, many=True).data
-#         return Follow.objects.filter(
-#             user=obj.user, following=obj.following).exists()
-# #         return
-# #
-#
+
     def get_recipes_count(self, obj):
         return Recipies.objects.filter(author=obj.following).count()
 
-
     def get_avatar(self, obj):
-#         if obj.following.avatar:
-#             return obj.following.avatar.url
-#         return None
-        pass
+        if obj.following.avatar:
+            return obj.following.avatar.url
+        return None
 
 
 class IngredientsSerializer(serializers.ModelSerializer):
@@ -135,10 +98,6 @@ class IngredientsSerializer(serializers.ModelSerializer):
         model = Ingredients
         fields = ('id', 'name', 'measurement_unit')
 
-    # def validate_id(self, value):
-    #     if not Ingredients.objects.filter(id=value).exists():
-    #         raise serializers.ValidationError("Ингредиент не найден")
-    #     return value
 
 class TagsSerializer(serializers.ModelSerializer):
     """Сериализатор тегов."""
@@ -149,14 +108,8 @@ class TagsSerializer(serializers.ModelSerializer):
 
 class IngredientsRecipiesSerializer(serializers.ModelSerializer):
     """ Сериализатор ингредиентов в рецепте."""
-    # id = serializers.PrimaryKeyRelatedField(
-    id = serializers.ReadOnlyField(
-        # read_only=True,
-        source='ingredient.id'
-    )
-    # name = serializers.SlugRelatedField(
+    id = serializers.ReadOnlyField(source='ingredient.id')
     name = serializers.ReadOnlyField(source='ingredient.name')
-    # measurement_unit = serializers.SlugRelatedField(
     measurement_unit = serializers.ReadOnlyField(
         source='ingredient.measurement_unit'
     )
@@ -226,7 +179,7 @@ class RecipiesSerializer(serializers.ModelSerializer):
             for ingredient in data:
                 if ingredient['id'] in ingredients_list:
                     raise serializers.ValidationError({
-                    f'{field}': 'Ингредиенты не должны повторяться в рецепте!'})
+                    f'{field}': 'Ингредиенты не должны повторяться в рецепте'})
                 ingredients_list.append(ingredient['id'])
                 if not Ingredients.objects.filter(id=ingredient['id']).exists():
                     raise serializers.ValidationError({
@@ -246,11 +199,6 @@ class RecipiesSerializer(serializers.ModelSerializer):
                         f'{field}': 'Такого тега не существует!'})
         return data
 
-    # def validate_ingredients(self, value):
-    #     for ingredient_id in value:
-    #         if not Ingredients.objects.filter(id=ingredient_id).exists():
-    #             raise serializers.ValidationError("Ингредиент не найден")
-    #     return value
     def validate(self, data):
         image = self.initial_data.get('image')
         # cooking_time = self.initial_data.get('cooking_time')

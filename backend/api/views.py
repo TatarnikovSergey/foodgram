@@ -3,7 +3,6 @@ import os
 
 from django.db.models import Sum
 from django_filters.rest_framework import DjangoFilterBackend
-
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.http import HttpResponse
@@ -12,35 +11,29 @@ from djoser.views import UserViewSet
 from rest_framework import viewsets, permissions, status, pagination
 from rest_framework.decorators import action
 from rest_framework.response import Response
-# from rest_framework.permissions import IsAuthenticated
 import pyshorteners
 
-from  .filters import RecipiesFilter
+from .filters import RecipiesFilter
 from .paginations import Pagination
 from .permissions import IsStaffOrReadOnly, IsAuthorOrModerPermission
 from .serializers import (FavoritesSerializer, FollowSerializer,
                           IngredientsSerializer, RecipiesSerializer,
-                          ShoppingCartSerializer, TagsSerializer,#)
+                          ShoppingCartSerializer, TagsSerializer,
                           UsersSerializer, UserAvatarSerializer,
                           CreateUserSerializer)
-# from users.serializers import UsersSerializer, UserAvatarSerializer
 from recipes.models import (Favorites, Ingredients, IngredientsRecipies,
                             Recipies, ShoppingCart, Tags)
-from users.models import Follow, User
+from users.models import Follow
 
-
+User = get_user_model()
 
 
 class CustomUserViewSet(UserViewSet):
-
-    # serializer_class = UsersSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     pagination_class = Pagination
-    # queryset = User.objects.all()
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
-        # if self.action == ['retrieve', 'list']:
             return UsersSerializer
         elif self.action == 'update':
             return UsersSerializer(partial=True)
@@ -48,12 +41,7 @@ class CustomUserViewSet(UserViewSet):
             return CreateUserSerializer
         return super().get_serializer_class()
 
-    # def get_permissions(self):
-    #     if self.action in ['retrieve', 'list']:
-    #         return (permissions.IsAuthenticatedOrReadOnly(),)
-    #     return super().get_permissions()
     def get_queryset(self):
-        # pass
         return User.objects.all()
 
     @action(
@@ -64,7 +52,6 @@ class CustomUserViewSet(UserViewSet):
     )
     def add_avatar(self, request):
         user = request.user
-        # avatar_base64 = request.data.get('avatar')
         if request.data.get('avatar'):
             temp_data = request.data.get('avatar').split(",")[1]
             deroder = base64.b64decode(temp_data)
@@ -101,7 +88,6 @@ class CustomUserViewSet(UserViewSet):
 
     @action(detail=True,
             methods=['post', 'delete'],
-            # url_path='subscribe',
             permission_classes=[permissions.IsAuthenticated])
     def subscribe(self, request, id=None):
         """Подписка и отписка на/от автора."""
@@ -114,9 +100,6 @@ class CustomUserViewSet(UserViewSet):
             if Follow.objects.filter(user=user, following=following):
                 return Response({"errors": "Вы уже подписаны на этого автора"},
                                 status=status.HTTP_400_BAD_REQUEST)
-            # serializer = FollowSerializer(following, data=request.data,
-            #                               context={'request': request})
-            # serializer.is_valid(raise_exception=True)
             follow = Follow.objects.create(user=user, following=following)
             serializer = FollowSerializer(follow, context={'request': request})
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -149,13 +132,6 @@ class TagsViewSet(viewsets.ModelViewSet):
     permission_classes = (IsStaffOrReadOnly,)
     pagination_class = None
 
-    # def create(self, request, *args, **kwargs):
-    #     if not request.user.is_staff:
-    #         return Response({
-    #                             "errors": "Новые теги нельзя добавить"},
-    #                         status=status.HTTP_405_METHOD_NOT_ALLOWED)
-    #     return super().create(request, *args, **kwargs)
-
 
 class IngredientsViewSet(viewsets.ModelViewSet):
     """ViewSet модели ингредиентов."""
@@ -174,8 +150,6 @@ class IngredientsViewSet(viewsets.ModelViewSet):
 
 
 class RecipiesViewSet(viewsets.ModelViewSet):
-    # queryset = Recipies.objects.select_related("author").prefetch_related(
-    #     "tags", "ingredients")
     queryset = Recipies.objects.all()
     serializer_class = RecipiesSerializer
     pagination_class = pagination.LimitOffsetPagination
@@ -183,8 +157,6 @@ class RecipiesViewSet(viewsets.ModelViewSet):
     filterset_class = RecipiesFilter
     permission_classes = (IsAuthorOrModerPermission,
                           permissions.IsAuthenticatedOrReadOnly)
-    # filter_fields = ('author__id', 'tags__name')
-
 
     def perform_create(self, serializer):
         """При создании рецепта автора получаем от пользователя."""
