@@ -46,4 +46,3 @@ class ShoppingCartAdmin(admin.ModelAdmin):
 @admin.register(Tags)
 class TagsAdmin(admin.ModelAdmin):
     list_display = ('name', 'slug')
-

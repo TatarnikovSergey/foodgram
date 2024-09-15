@@ -52,7 +52,6 @@ class UserAvatarSerializer(UsersSerializer):
         fields = ('avatar', )
 
 
-
 class FollowSerializer(serializers.ModelSerializer):
     """Сериализатор данных подписки."""
     email = serializers.ReadOnlyField(source='following.email')
@@ -178,10 +177,12 @@ class RecipiesSerializer(serializers.ModelSerializer):
             ingredients_list = []
             for ingredient in data:
                 if ingredient['id'] in ingredients_list:
-                    raise serializers.ValidationError({
-                    f'{field}': 'Ингредиенты не должны повторяться в рецепте'})
+                    raise serializers.ValidationError(
+                        {f'{field}':
+                         'Ингредиенты не должны повторяться в рецепте'})
                 ingredients_list.append(ingredient['id'])
-                if not Ingredients.objects.filter(id=ingredient['id']).exists():
+                if not Ingredients.objects.filter(
+                        id=ingredient['id']).exists():
                     raise serializers.ValidationError({
                         f'{field}': 'Такого ингредиента не существует!'})
                 if ingredient['amount'] <= 0:
@@ -249,8 +250,8 @@ class FavoritesSerializer(serializers.ModelSerializer):
             validators.UniqueTogetherValidator(
                 queryset=Favorites.objects.all(),
                 fields=['user', 'recipe'],
-                )
-            ]
+            )
+        ]
 
     def to_representation(self, instance):
         request = self.context.get('request')
