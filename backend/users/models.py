@@ -2,13 +2,16 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.db import models
 
+from .constants import MAX_LEN_EMAIL, MAX_LEN_NAME, MAX_LEN_PASSWORD
+
 
 class User(AbstractUser):
     """Модель пользователя."""
-    email = models.EmailField(max_length=256, unique=True,
+    email = models.EmailField(max_length=MAX_LEN_EMAIL,
+                              unique=True,
                               verbose_name='Адрес электронной почты')
     username = models.CharField(
-        max_length=150, unique=True, verbose_name='Имя пользователя',
+        max_length=MAX_LEN_NAME, unique=True, verbose_name='Имя пользователя',
         validators=[
             RegexValidator(
                 regex=r'^[\w.@+-]+$',
@@ -16,9 +19,10 @@ class User(AbstractUser):
             )
         ]
     )
-    first_name = models.CharField(max_length=150, verbose_name='Имя')
-    last_name = models.CharField(max_length=150, verbose_name='Фамилия')
-    password = models.CharField(max_length=150)
+    first_name = models.CharField(max_length=MAX_LEN_NAME, verbose_name='Имя')
+    last_name = models.CharField(max_length=MAX_LEN_NAME,
+                                 verbose_name='Фамилия')
+    password = models.CharField(max_length=MAX_LEN_PASSWORD)
     avatar = models.ImageField(
         upload_to='users/',
         null=True,
@@ -41,11 +45,14 @@ class Follow(models.Model):
     """Модель подписки на автора рецепта."""
 
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='follower')
+        User, on_delete=models.CASCADE,
+        related_name='follower')
     following = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='following')
 
     class Meta:
+        verbose_name = 'Подписка на пользователей'
+        verbose_name_plural = 'Подписки на пользователей'
         constraints = (
             models.UniqueConstraint(
                 fields=('user', 'following'),
