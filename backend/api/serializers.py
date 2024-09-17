@@ -185,7 +185,7 @@ class RecipiesSerializer(serializers.ModelSerializer):
                         id=ingredient['id']).exists():
                     raise serializers.ValidationError({
                         f'{field}': 'Такого ингредиента не существует!'})
-                if ingredient['amount'] <= 0:
+                if int(ingredient['amount']) <= 0:
                     raise serializers.ValidationError({
                         f'{field}': 'Количество не может быть < или = ноль!'})
         if field == 'tags':

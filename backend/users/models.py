@@ -7,7 +7,7 @@ from .constants import MAX_LEN_EMAIL, MAX_LEN_NAME, MAX_LEN_PASSWORD
 
 class User(AbstractUser):
     """Модель пользователя."""
-    email = models.EmailField(max_length=MAX_LEN_EMAIL,
+    email = models.EmailField(
                               unique=True,
                               verbose_name='Адрес электронной почты')
     username = models.CharField(
@@ -22,7 +22,7 @@ class User(AbstractUser):
     first_name = models.CharField(max_length=MAX_LEN_NAME, verbose_name='Имя')
     last_name = models.CharField(max_length=MAX_LEN_NAME,
                                  verbose_name='Фамилия')
-    password = models.CharField(max_length=MAX_LEN_PASSWORD)
+    # password = models.CharField(max_length=MAX_LEN_PASSWORD)
     avatar = models.ImageField(
         upload_to='users/',
         null=True,
