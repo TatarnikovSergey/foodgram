@@ -3,9 +3,14 @@
 # Версия docker-compose
 version: '3'
 
+networks:
+  foodgram-network:
 # Перечень volume
 volumes:
   pg_data:
+  # Новый volume — для статических файлов
+  static:
+  media:
 
 # Перечень контейнеров
 services:
@@ -19,6 +24,8 @@ services:
     # Какой volume подключить для этого контейнера
     volumes:
       - pg_data:/var/lib/postgresql/data
+    networks:
+      - foodgram-network
   # Имя и описание контейнера с бэкендом
   backend:
     # Из какого Dockerfile собирать образ для этого контейнера:
@@ -27,10 +34,21 @@ services:
     # Какие контейнеры нужно запустить до старта этого контейнера:
     depends_on:
       - db
+    # Тут подключаем volume к backend
+    volumes:
+      - static:/backend_static
+      - media:/app/media/
+    networks:
+      - foodgram-network
   # Имя третьего контейнера. Это контейнер с фронтендом
   frontend:
     env_file: .env
     build: ./frontend/
+    command: cp -r /app/build/. /frontend_static/
+    volumes:
+      - static:/frontend_static
+    networks:
+      - foodgram-network
   # Добавляем новый контейнер: gateway.
   infra:
     # Сбилдить и запустить образ,
@@ -39,5 +57,15 @@ services:
     # Ключ ports устанавливает
     # перенаправление всех запросов с порта 8000 хоста
     # на порт 80 контейнера.
+    env_file: .env
     ports:
       - 8000:80
+    depends_on:
+      - backend
+      - frontend
+    # А тут подключаем volume со статикой к infra
+    volumes:
+      - static:/staticfiles
+      - media:/app/media
+    networks:
+      - foodgram-network
