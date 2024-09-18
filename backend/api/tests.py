@@ -1,8 +1,9 @@
 # backend/api/tests.py
 from http import HTTPStatus
+from django.test import Client, TestCase
 
 from recipes import models
-from django.test import Client, TestCase
+
 
 class FoodgramiAPITestCase(TestCase):
     def setUp(self):
@@ -14,7 +15,7 @@ class FoodgramiAPITestCase(TestCase):
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_task_creation(self):
-        """Проверка создания задачи."""
+        """Проверка создания рецепта."""
         data = {'title': 'Test',
                 'description': 'Test'}
         response = self.guest_client.post('/api/recipes/', data=data)
