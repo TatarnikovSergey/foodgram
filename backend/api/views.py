@@ -29,6 +29,7 @@ User = get_user_model()
 
 
 class CustomUserViewSet(UserViewSet):
+    """ViewSet для работы с пользователями."""
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     pagination_class = Pagination
 
@@ -51,6 +52,7 @@ class CustomUserViewSet(UserViewSet):
         permission_classes=[permissions.IsAuthenticated],
     )
     def add_avatar(self, request):
+        """Добавляет аватар пользователя."""
         user = request.user
         if request.data.get('avatar'):
             temp_data = request.data.get('avatar').split(",")[1]
@@ -66,6 +68,7 @@ class CustomUserViewSet(UserViewSet):
 
     @add_avatar.mapping.delete
     def del_avatar(self, request):
+        """Удаляет аватар пользователя."""
         user = request.user
         if user.avatar:
             os.remove(user.avatar.path)
@@ -137,7 +140,6 @@ class IngredientsViewSet(viewsets.ModelViewSet):
     serializer_class = IngredientsSerializer
     permission_classes = (IsStaffOrReadOnly,)
     pagination_class = None
-    queryset = Ingredients.objects.all()
 
     def get_queryset(self):
         """Получает ингредиент в соответствии с параметрами запроса."""
@@ -149,6 +151,7 @@ class IngredientsViewSet(viewsets.ModelViewSet):
 
 
 class RecipiesViewSet(viewsets.ModelViewSet):
+    """ViewSet модели рецептов."""
     queryset = Recipies.objects.all()
     serializer_class = RecipiesSerializer
     pagination_class = pagination.LimitOffsetPagination
@@ -242,5 +245,4 @@ class RecipiesViewSet(viewsets.ModelViewSet):
         response = HttpResponse(content, content_type='text/plain')
         response['Content-Disposition'] = (
             'attachment; filename="ingredients_list.txt"')
-
         return response
