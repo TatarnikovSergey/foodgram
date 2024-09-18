@@ -19,7 +19,7 @@ from .permissions import IsStaffOrReadOnly, IsAuthorOrModerPermission
 from .serializers import (FavoritesSerializer, FollowSerializer,
                           IngredientsSerializer, RecipiesSerializer,
                           ShoppingCartSerializer, TagsSerializer,
-                          UsersSerializer, UserAvatarSerializer,
+                          UserAvatarSerializer, UsersSerializer,
                           CreateUserSerializer)
 from recipes.models import (Favorites, Ingredients, IngredientsRecipies,
                             Recipies, ShoppingCart, Tags)
