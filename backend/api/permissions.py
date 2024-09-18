@@ -27,9 +27,15 @@ class IsAuthorOrModerPermission(permissions.BasePermission):
     Позволяет безопасные методы всем пользователям.
     """
 
+    # def has_object_permission(self, request, view, obj):
+    #     return (
+    #         request.method in permissions.SAFE_METHODS
+    #         or obj.author == request.user
+    #         or (request.user.is_authenticated and request.user.is_staff)
+    #     )
     def has_object_permission(self, request, view, obj):
-        return (
-            request.method in permissions.SAFE_METHODS
-            or obj.author == request.user
-            or (request.user.is_authenticated and request.user.is_staff)
-        )
+        return any((
+            request.method in permissions.SAFE_METHODS,
+            obj.author == request.user,
+            request.user.is_authenticated and request.user.is_staff
+        ))
