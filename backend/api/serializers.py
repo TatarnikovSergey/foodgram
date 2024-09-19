@@ -3,7 +3,7 @@ import base64
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from djoser.serializers import UserCreateSerializer, UserSerializer
-from rest_framework import serializers, validators
+from rest_framework import serializers, validators, exceptions
 
 from recipes.models import (Ingredients, IngredientsRecipies, Recipies, Tags,
                             ShoppingCart, Favorites)
@@ -226,7 +226,12 @@ class RecipiesSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {'cooking_time': 'Время приготовления не может быть < 0'}
             )
-        data['ingredients'] = self.validate_field('ingredients')
+        # data['ingredients'] = self.validate_field('ingredients')
+        ingredients = self.validate_field('ingredients')
+        if len(ingredients) <= 0:
+            raise exceptions.ValidationError(
+                {'ingredients': 'Количество не может быть < или = ноль!'})
+        data['ingredients'] = ingredients
         data['tags'] = self.validate_field('tags')
         return data
 
