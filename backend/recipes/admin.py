@@ -15,9 +15,13 @@ class IngredientsAdmin(admin.ModelAdmin):
     search_fields = ('name',)
 
 
-@admin.register(IngredientsRecipies)
-class IngredientsRecipiesAdmin(admin.ModelAdmin):
-    list_display = ('recipe', 'amount')
+# @admin.register(IngredientsRecipies)
+# class IngredientsRecipiesAdmin(admin.ModelAdmin):
+#     list_display = ('recipe', 'amount')
+class IngredientsRecipiesInline(admin.TabularInline):
+    model = IngredientsRecipies
+    extra = 1
+    min_num = 1
 
 
 @admin.register(Recipies)
@@ -26,6 +30,7 @@ class RecipiesAdmin(admin.ModelAdmin):
                     'favorite_count')
     search_fields = ('name', 'author__username')
     list_filter = ('tags',)
+    inlines = [IngredientsRecipiesInline]
 
     @admin.display(description='Ингредиенты')
     def show_ingredient(self, obj):
