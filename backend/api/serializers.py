@@ -138,7 +138,7 @@ class RecipiesSerializer(serializers.ModelSerializer):
     )
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
-    image = Base64ImageField()
+    image = Base64ImageField(allow_null=False, allow_empty_file=False,)
 
     class Meta:
         model = Recipies
@@ -244,7 +244,8 @@ class RecipiesSerializer(serializers.ModelSerializer):
         IngredientsRecipies.objects.filter(recipe=instance).all().delete()
         self.add_ingredients(validated_data.get('ingredients'), instance)
         instance.save()
-        return instance
+        # return instance
+        return super().update(instance, validated_data)
 
 
 class FavoriteShoppingShowSerializer(serializers.ModelSerializer):

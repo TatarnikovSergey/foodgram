@@ -17,8 +17,7 @@ class IngredientsAdmin(admin.ModelAdmin):
 
 class IngredientsRecipiesInline(admin.TabularInline):
     model = IngredientsRecipies
-    min_num = 1
-    verbose_name = 'Добавьте ингредиенты'
+    extra = 1
 
 
 @admin.register(Recipies)
