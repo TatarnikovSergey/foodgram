@@ -199,9 +199,9 @@ class RecipiesSerializer(serializers.ModelSerializer):
                         id=ingredient['id']).exists():
                     raise serializers.ValidationError({
                         f'{field}': 'Такого ингредиента не существует!'})
-                if int(ingredient['amount']) <= 0:
+                if int(ingredient['amount']) < 1:
                     raise serializers.ValidationError({
-                        f'{field}': 'Количество не может быть < или = ноль!'})
+                        f'{field}': 'Количество не может быть < 1'})
         if field == 'tags':
             tags_list = []
             for tag in data:
@@ -226,12 +226,7 @@ class RecipiesSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {'cooking_time': 'Время приготовления не может быть < 0'}
             )
-        # data['ingredients'] = self.validate_field('ingredients')
-        ingredients = self.validate_field('ingredients')
-        if len(ingredients) <= 0:
-            raise exceptions.ValidationError(
-                {'ingredients': 'Количество не может быть < или = ноль!'})
-        data['ingredients'] = ingredients
+        data['ingredients'] = self.validate_field('ingredients')
         data['tags'] = self.validate_field('tags')
         return data
 
