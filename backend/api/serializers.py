@@ -200,7 +200,7 @@ class RecipiesSerializer(serializers.ModelSerializer):
                     raise serializers.ValidationError({
                         f'{field}': 'Такого ингредиента не существует!'})
                 if int(ingredient['amount']) <= 0:
-                    raise serializers.ValidationError({
+                    raise exceptions.ValidationError({
                         f'{field}': 'Количество не может быть < или = ноль!'})
         if field == 'tags':
             tags_list = []
