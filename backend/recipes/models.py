@@ -58,7 +58,8 @@ class Tags(models.Model):
 
 class Ingredients(models.Model):
     """Модель Ингредиентов."""
-    name = models.CharField(max_length=MAX_LEN_NAME, verbose_name='Название')
+    name = models.CharField(max_length=MAX_LEN_NAME, verbose_name='Название',
+                           unique=True)
     measurement_unit = models.CharField(max_length=MAX_LEN_MEAS_UNIT,
                                         verbose_name='Единица измерения')
 
