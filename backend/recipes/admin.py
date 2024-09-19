@@ -15,13 +15,10 @@ class IngredientsAdmin(admin.ModelAdmin):
     search_fields = ('name',)
 
 
-# @admin.register(IngredientsRecipies)
-# class IngredientsRecipiesAdmin(admin.ModelAdmin):
-#     list_display = ('recipe', 'amount')
 class IngredientsRecipiesInline(admin.TabularInline):
     model = IngredientsRecipies
-    extra = 1
     min_num = 1
+    verbose_name = 'Добавьте ингредиенты'
 
 
 @admin.register(Recipies)
