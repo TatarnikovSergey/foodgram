@@ -27,7 +27,7 @@ class RecipiesAdmin(admin.ModelAdmin):
                     'favorite_count')
     search_fields = ('name', 'author__username')
     list_filter = ('tags',)
-    inlines = (IngredientsRecipiesInline)
+    inlines = (IngredientsRecipiesInline,)
 
     @admin.display(description='Ингредиенты')
     def show_ingredient(self, obj):
