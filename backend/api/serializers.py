@@ -238,7 +238,7 @@ class RecipiesSerializer(serializers.ModelSerializer):
             'cooking_time',
             instance.cooking_time
         )
-        instance.image = validated_data.get('image', instance.image) #or ""
+        instance.image = validated_data.get('image', instance.image) # or ""
         tags_data = self.validated_data.get('tags')
         instance.tags.set(tags_data)
         IngredientsRecipies.objects.filter(recipe=instance).all().delete()
