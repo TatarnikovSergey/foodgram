@@ -239,14 +239,13 @@ class RecipiesSerializer(serializers.ModelSerializer):
             'cooking_time',
             instance.cooking_time
         )
-        instance.image = validated_data.get('image', instance.image)  # or ""
+        instance.image = validated_data.get('image', instance.image)
         tags_data = self.validated_data.get('tags')
         instance.tags.set(tags_data)
         IngredientsRecipies.objects.filter(recipe=instance).all().delete()
         self.add_ingredients(validated_data.get('ingredients'), instance)
         instance.save()
         return instance
-        # return super().update(instance, validated_data)
 
 
 class FavoriteShoppingShowSerializer(serializers.ModelSerializer):
