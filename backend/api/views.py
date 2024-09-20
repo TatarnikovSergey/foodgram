@@ -154,7 +154,7 @@ class RecipiesViewSet(viewsets.ModelViewSet):
     """ViewSet модели рецептов."""
     queryset = Recipies.objects.all()
     serializer_class = RecipiesSerializer
-    pagination_class = pagination.LimitOffsetPagination
+    pagination_class = Pagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipiesFilter
     permission_classes = (IsAuthorOrModerPermission,

@@ -138,7 +138,7 @@ class RecipiesSerializer(serializers.ModelSerializer):
     )
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
-    image = Base64ImageField(allow_null=False, allow_empty_file=False,)
+    image = Base64ImageField()
 
     class Meta:
         model = Recipies
@@ -216,8 +216,9 @@ class RecipiesSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         """Проверка полей при создании и изменении рецепта."""
+        request = self.context.get('request')
         image = self.initial_data.get('image')
-        if not image:
+        if request.method == 'POST' and not image:
             raise serializers.ValidationError(
                 {'image': 'У рецепта должна быть картинка'}
             )
