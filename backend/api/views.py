@@ -164,6 +164,10 @@ class RecipiesViewSet(viewsets.ModelViewSet):
         """При создании рецепта автора получаем от пользователя."""
         serializer.save(author=self.request.user)
 
+  def perform_update(self, serializer):
+        """При изменение сохраняем только переданые поля."""
+        serializer.save(partial=True)
+
     @action(
         detail=True,
         methods=['get'],
