@@ -165,7 +165,7 @@ class RecipiesViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user)
 
     def perform_update(self, serializer):
-        """При изменение сохраняем только переданые поля."""
+        """При изменении сохраняем только переданые поля."""
         serializer.save(partial=True)
 
     @action(
