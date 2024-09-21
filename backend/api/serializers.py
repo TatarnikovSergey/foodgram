@@ -208,7 +208,6 @@ class RecipiesSerializer(serializers.ModelSerializer):
                 {'image': 'У рецепта должна быть картинка'}
             )
         cook_time = data.get('cooking_time')
-
         if not cook_time or cook_time <= 0:
             raise serializers.ValidationError(
                 {'cooking_time': 'Время приготовления не!!!! может быть < 1'}
