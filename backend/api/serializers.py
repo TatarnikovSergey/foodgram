@@ -218,10 +218,10 @@ class RecipiesSerializer(serializers.ModelSerializer):
         """Проверка полей при создании и изменении рецепта."""
         request = self.context.get('request')
         image = self.initial_data.get('image')
-        if request.method == 'POST' and not image:
-            raise serializers.ValidationError(
-                {'image': 'У рецепта должна быть картинка'}
-            )
+        # if request.method == 'POST' and not image:
+        #     raise serializers.ValidationError(
+        #         {'image': 'У рецепта должна быть картинка'}
+        #     )
         cook_time = data.get('cooking_time')
         if not cook_time or cook_time <= 0:
             raise serializers.ValidationError(
