@@ -16,7 +16,8 @@ class Recipies(models.Model):
                                verbose_name='Автор')
     ingredients = models.ManyToManyField('Ingredients',
                                          verbose_name='Ингредиент',
-                                         through='IngredientsRecipies',)
+                                         through='IngredientsRecipies',
+                                         required=True)
     name = models.CharField(max_length=MAX_LEN_NAME,
                             verbose_name='Название')
     image = models.ImageField(upload_to='recipes/images/',
