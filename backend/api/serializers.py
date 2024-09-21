@@ -199,7 +199,7 @@ class RecipiesSerializer(serializers.ModelSerializer):
                         id=ingredient['id']).exists():
                     raise serializers.ValidationError({
                         f'{field}': 'Такого ингредиента не существует!'})
-                if int(ingredient['amount']) < 1:
+                if int(ingredient['amount']) <= 0:
                     raise serializers.ValidationError({
                         f'{field}': 'Количество не может быть < 1'})
         if field == 'tags':
@@ -216,16 +216,16 @@ class RecipiesSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         """Проверка полей при создании и изменении рецепта."""
-        # request = self.context.get('request')
-        # image = self.initial_data.get('image')
-        # if request.method == 'POST' and not image:
-        #     raise serializers.ValidationError(
-        #         {'image': 'У рецепта должна быть картинка'}
-        #     )
+        request = self.context.get('request')
+        image = self.initial_data.get('image')
+        if request.method == 'POST' and not image:
+            raise serializers.ValidationError(
+                {'image': 'У рецепта должна быть картинка'}
+            )
         cook_time = data.get('cooking_time')
         if not cook_time or cook_time <= 0:
             raise serializers.ValidationError(
-                {'cooking_time': 'Время приготовления не может быть < 0'}
+                {'cooking_time': 'Время приготовления не может быть < 1'}
             )
         data['ingredients'] = self.validate_field('ingredients')
         data['tags'] = self.validate_field('tags')
