@@ -216,8 +216,8 @@ class RecipiesSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         """Проверка полей при создании и изменении рецепта."""
-        request = self.context.get('request')
-        image = self.initial_data.get('image')
+        # request = self.context.get('request')
+        # image = self.initial_data.get('image')
         # if request.method == 'POST' and not image:
         #     raise serializers.ValidationError(
         #         {'image': 'У рецепта должна быть картинка'}
