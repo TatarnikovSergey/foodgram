@@ -187,18 +187,18 @@ class RecipiesSerializer(serializers.ModelSerializer):
         if not data:
             raise serializers.ValidationError(
                 {f'Для создания рецепта заполните поле {field}!'})
-        if field == 'ingredients':
-            ingredients_list = []
-            for ingredient in data:
-                if ingredient['id'] in ingredients_list:
-                    raise serializers.ValidationError(
-                        {f'{field}':
-                         'Ингредиенты не должны повторяться в рецепте'})
-                ingredients_list.append(ingredient['id'])
-                if not Ingredients.objects.filter(
-                        id=ingredient['id']).exists():
-                    raise serializers.ValidationError({
-                        f'{field}': 'Такого ингредиента не существует!'})
+        # if field == 'ingredients':
+        #     ingredients_list = []
+        #     for ingredient in data:
+        #         if ingredient['id'] in ingredients_list:
+        #             raise serializers.ValidationError(
+        #                 {f'{field}':
+        #                  'Ингредиенты не должны повторяться в рецепте'})
+        #         ingredients_list.append(ingredient['id'])
+        #         if not Ingredients.objects.filter(
+        #                 id=ingredient['id']).exists():
+        #             raise serializers.ValidationError({
+        #                 f'{field}': 'Такого ингредиента не существует!'})
         if field == 'tags':
             tags_list = []
             for tag in data:
@@ -225,15 +225,25 @@ class RecipiesSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {'cooking_time': 'Время приготовления не!!!! может быть < 1'}
         )
-        ingredients = self.initial_data.get('ingredients')
+        # ingredients = self.initial_data.get('ingredients')
+        ingredients = self.validate_field('ingredients')
+        ingredients_list = []
         for ingredient in ingredients:
             if int(ingredient['amount']) <= 0:
                 raise serializers.ValidationError({
                     'ingredient': 'Количество не может быть < 1'})
+            if ingredient['id'] in ingredients_list:
+                raise serializers.ValidationError({
+                    'ingredient': 'Ингредиенты не должны повторяться в рецепте'
+                })
+            ingredients_list.append(ingredient['id'])
+            if not Ingredients.objects.filter(
+                    id=ingredient['id']).exists():
+                raise serializers.ValidationError({
+                    'ingredient': 'Такого ингредиента не существует!'})
         data['ingredients'] = ingredients
         data['tags'] = self.validate_field('tags')
         return data
-
 
     def update(self, instance, validated_data):
         """Изменение рецепта."""
