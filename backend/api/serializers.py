@@ -211,7 +211,7 @@ class RecipiesSerializer(serializers.ModelSerializer):
         if not cook_time or cook_time <= 0:
             raise serializers.ValidationError(
                 {'cooking_time': 'Время приготовления не!!!! может быть < 1'}
-        )
+            )
         ingredients = self.validate_field('ingredients')
         ingredients_list = []
         for ingredient in ingredients:
