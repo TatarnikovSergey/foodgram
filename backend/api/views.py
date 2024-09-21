@@ -160,22 +160,8 @@ class RecipiesViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthorOrModerPermission,
                           permissions.IsAuthenticatedOrReadOnly)
 
-
-    def correct_ingredients(self, request):
-        """Проверяет корректность количества ингредиентов."""
-        for ingredient in self.request.query_params['ingredients']:
-            if ingredient['amount'] <= 0:
-                print('________________________________________________________________________________________________________________________________')
-                # raise exceptions.ValidationError({
-                #     f'ingredient': 'Количество не может быть < 1'})
-                return Response(
-                     {'errors': 'Количество не может быть 0.'},
-                     status=status.HTTP_400_BAD_REQUEST
-                )
-
     def perform_create(self, serializer):
         """При создании рецепта автора получаем от пользователя."""
-        self.correct_ingredients(serializer)
         serializer.save(author=self.request.user)
 
     def perform_update(self, serializer):

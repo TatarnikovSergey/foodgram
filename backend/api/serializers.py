@@ -176,12 +176,9 @@ class RecipiesSerializer(serializers.ModelSerializer):
         """Создание рецепта."""
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
-        print("1"*100)
         recipe = Recipies.objects.create(**validated_data)
         recipe.tags.set(tags)
-        print("2" * 100)
         self.add_ingredients(ingredients, recipe)
-        print("3" * 100)
         return recipe
 
     def validate_field(self, field):
@@ -202,9 +199,6 @@ class RecipiesSerializer(serializers.ModelSerializer):
                         id=ingredient['id']).exists():
                     raise serializers.ValidationError({
                         f'{field}': 'Такого ингредиента не существует!'})
-                if int(ingredient['amount']) <= 0:
-                    raise serializers.ValidationError({
-                        f'{field}': 'Количество не может быть < 1'})
         if field == 'tags':
             tags_list = []
             for tag in data:
@@ -212,30 +206,34 @@ class RecipiesSerializer(serializers.ModelSerializer):
                     raise serializers.ValidationError({
                         f'{field}': 'Теги не должны повторяться в рецепте!'})
                 tags_list.append(tag)
-                # if not Tags.objects.filter(id=tag).exists():
-                #     raise serializers.ValidationError({
-                #         f'{field}': 'Такого тега не существует!'})
+                if not Tags.objects.filter(id=tag).exists():
+                    raise serializers.ValidationError({
+                        f'{field}': 'Такого тега не существует!'})
         return data
 
     def validate(self, data):
         """Проверка полей при создании и изменении рецепта."""
-        try:
-            request = self.context.get('request')
-            image = self.initial_data.get('image')
-            if request.method == 'POST' and not image:
-                raise serializers.ValidationError(
-                    {'image': 'У рецепта должна быть картинка'}
-                )
-            cook_time = data.get('cooking_time')
-            if not cook_time or cook_time <= 0:
-                raise serializers.ValidationError(
-                    {'cooking_time': 'Время приготовления не может быть < 1'}
+        request = self.context.get('request')
+        image = self.initial_data.get('image')
+        if request.method == 'POST' and not image:
+            raise serializers.ValidationError(
+                {'image': 'У рецепта должна быть картинка'}
             )
-            data['ingredients'] = self.validate_field('ingredients')
-            data['tags'] = self.validate_field('tags')
-            return data
-        except serializers.ValidationError as e:
-            raise serializers.ValidationError(e.detail)
+        cook_time = data.get('cooking_time')
+
+        if not cook_time or cook_time <= 0:
+            raise serializers.ValidationError(
+                {'cooking_time': 'Время приготовления не!!!! может быть < 1'}
+        )
+        ingredients = self.initial_data.get('ingredients')
+        for ingredient in ingredients:
+            if int(ingredient['amount']) <= 0:
+                raise serializers.ValidationError({
+                    'ingredient': 'Количество не может быть < 1'})
+        data['ingredients'] = ingredients
+        data['tags'] = self.validate_field('tags')
+        return data
+
 
     def update(self, instance, validated_data):
         """Изменение рецепта."""
