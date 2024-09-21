@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.core.exceptions import ValidationError
 
 from .models import (Favorites, Ingredients, IngredientsRecipies, Recipies,
                      ShoppingCart, Tags)
@@ -27,6 +28,11 @@ class RecipiesAdmin(admin.ModelAdmin):
     search_fields = ('name', 'author__username')
     list_filter = ('tags',)
     inlines = (IngredientsRecipiesInline,)
+
+    def clean(self):
+        if not self.cleaned_data.get('ingredients'):
+            raise ValidationError(
+                {'ingredients': 'Ингредиенты обязательны для рецепта'})
 
     @admin.display(description='Ингредиенты')
     def show_ingredient(self, obj):
