@@ -210,14 +210,14 @@ class RecipiesSerializer(serializers.ModelSerializer):
         cook_time = data.get('cooking_time')
         if not cook_time or cook_time <= 0:
             raise serializers.ValidationError(
-                {'cooking_time': 'Время приготовления не!!!! может быть < 1'}
+                {'cooking_time': 'Время приготовления не может быть < 1'}
             )
         ingredients = self.validate_field('ingredients')
         ingredients_list = []
         for ingredient in ingredients:
             if int(ingredient['amount']) <= 0:
                 raise serializers.ValidationError({
-                    'ingredient': 'Количество не может быть < 1'})
+                    'ingredient': 'Количество ингредиентов не может быть < 1'})
             if ingredient['id'] in ingredients_list:
                 raise serializers.ValidationError({
                     'ingredient': 'Ингредиенты не должны повторяться в рецепте'
